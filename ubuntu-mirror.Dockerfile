@@ -1,4 +1,5 @@
-FROM ubuntu:20.04
+ARG VERSION=latest
+FROM ubuntu:${VERSION}
 
 # mirror for aliyun
 RUN sed -i 's/^\(deb\|deb-src\) \([^ ]*\) \(.*\)/\1 http:\/\/mirrors.aliyun.com\/ubuntu \3/' /etc/apt/sources.list
