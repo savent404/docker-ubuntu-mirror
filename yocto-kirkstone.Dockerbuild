@@ -1,0 +1,34 @@
+FROM ubuntu:latest
+
+RUN DEBIAN_FRONTEND=noninteractive apt update
+RUN DEBIAN_FRONTEND=noninteractive  apt -y install \
+    gawk wget git diffstat unzip texinfo gcc \
+    build-essential chrpath \
+    socat cpio python3 python3-pip \
+    python3-pexpect xz-utils debianutils \
+    iputils-ping python3-git \
+    python3-jinja2 libegl1-mesa libsdl1.2-dev \
+    python3-subunit mesa-common-dev zstd \
+    liblz4-tool file locales
+
+# In Ubuntu, /bin/sh is a link to /bin/dash. 
+# The dash shell does not support the source command.
+# However, we need the source command in the very last line of the Dockerfile.
+RUN rm /bin/sh && ln -s bash /bin/sh
+
+# The yocto build failes, if the Linux system does not configure a UTF8-capable locale.
+RUN locale-gen en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+ENV USER_NAME savent
+
+ARG host_uid=1001
+ARG host_gid=1001
+RUN groupadd -g $host_gid $USER_NAME && \
+    useradd -g $host_gid -m -s /bin/bash -u $host_uid $USER_NAME
+
+USER $USER_NAME
+RUN mkdir -p /home/$USER_NAME/yocto
+RUN git clone git://git.yoctoproject.org/poky -b kirkstone --depth 1 /home/$USER_NAME/yocto/poky
